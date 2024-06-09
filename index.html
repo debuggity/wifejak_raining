@@ -18,7 +18,7 @@
         }
         canvas {
             border: 1px solid #ccc;
-            cursor: none; /* Make the mouse cursor invisible */
+            cursor: none;
         }
         .rain, .duck {
             position: absolute;
@@ -74,6 +74,9 @@
     <canvas id="canvas"></canvas>
     <div class="rain front"></div>
     <div class="duck"></div>
+    <div id="interactionPrompt" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 10px; cursor: pointer;">
+        Click to start the experience
+    </div>
     <audio id="softRain" src="assets/day.wav" loop></audio>
     <audio id="stormRain" src="assets/night.wav" loop></audio>
     <script>
@@ -107,14 +110,12 @@
         let isDay = true;
 
         function draw() {
-            // Draw gradient background on canvas
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             gradient.addColorStop(0, isDay ? '#87ceeb' : '#0a1128');
             gradient.addColorStop(1, isDay ? '#2c3e50' : '#1a2a3a');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw the wifejak image
             const wifejakImage = isDay ? wifejakDay : wifejakNight;
             ctx.drawImage(wifejakImage, canvas.width / 2 - wifejakImage.width / 2, canvas.height - wifejakImage.height);
         }
@@ -137,76 +138,78 @@
 
             ctx.save();
             ctx.translate(umbrellaX, umbrellaY);
-            ctx.rotate(angle + 1.9); // Adjusted the rotation for correct umbrella orientation
+            ctx.rotate(angle + 1.9);
             ctx.drawImage(umbrella, -umbrellaWidth, -umbrellaHeight);
             ctx.restore();
         }
 
         canvas.addEventListener('mousemove', (event) => {
             const angle = getMouseAngle(event);
-            draw(); // Redraw the wifejak character with gradient background
-            drawUmbrella(angle); // Draw the umbrella following the mouse angle
+            draw();
+            drawUmbrella(angle);
         });
 
-        // Adjust canvas size on window resize
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            draw(); // Redraw to adjust to new canvas size
+            draw();
         });
 
-        // Function to create raindrops and ducks
         function createRaindrops(containerClass, totalDrops, isDuck = false) {
             const rainContainer = document.querySelector(containerClass);
 
             for (let i = 0; i < totalDrops; i++) {
                 const drop = document.createElement('div');
                 drop.className = isDuck ? 'duckdrop' : 'raindrop';
-                drop.style.left = `${Math.random() * 100}vw`; // Random horizontal position
-                drop.style.animationDuration = `${Math.random() * 2 + 1}s`; // Random duration
-                drop.style.animationDelay = `${Math.random() * 2}s`; // Random delay
+                drop.style.left = `${Math.random() * 100}vw`;
+                drop.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                drop.style.animationDelay = `${Math.random() * 2}s`;
                 rainContainer.appendChild(drop);
             }
         }
 
-        // Create raindrops behind and in front of the canvas elements
-        createRaindrops('.rain.back', 100); // 100 raindrops behind
-        createRaindrops('.rain.front', 50); // 50 raindrops in front
-        // Create ducks in front
-        createRaindrops('.duck', 20, true); // 20 ducks
+        createRaindrops('.rain.back', 100);
+        createRaindrops('.rain.front', 50);
+        createRaindrops('.duck', 20, true);
 
         const softRainAudio = document.getElementById('softRain');
         const stormRainAudio = document.getElementById('stormRain');
 
-        // Function to toggle the day-night cycle and manage audio playback
         function toggleDayNight() {
             isDay = !isDay;
             document.body.style.backgroundColor = isDay ? '#87ceeb' : '#0a1128';
             draw();
 
             if (isDay) {
-                stormRainAudio.pause(); // Pause storm rain audio if playing
-                stormRainAudio.currentTime = 0; // Reset to the beginning
-                softRainAudio.play(); // Play soft rain audio
+                stormRainAudio.pause();
+                stormRainAudio.currentTime = 0;
+                softRainAudio.play();
             } else {
-                softRainAudio.pause(); // Pause soft rain audio if playing
-                softRainAudio.currentTime = 0; // Reset to the beginning
-                stormRainAudio.play(); // Play storm rain audio
+                softRainAudio.pause();
+                softRainAudio.currentTime = 0;
+                stormRainAudio.play();
             }
         }
 
-        // Start the day-night cycle with a 30-second interval
-        setInterval(toggleDayNight, 30000);
+        // Set up the day-night cycle
+        let hasInteracted = false;
+        function startExperience() {
+            if (!hasInteracted) {
+                hasInteracted = true;
+                document.getElementById('interactionPrompt').style.display = 'none';
 
-        // Initial audio setup
-        if (isDay) {
-            softRainAudio.play(); // Play the initial daytime audio
-        } else {
-            stormRainAudio.play(); // Play the initial nighttime audio
+                if (isDay) {
+                    softRainAudio.play();
+                } else {
+                    stormRainAudio.play();
+                }
+
+                setInterval(toggleDayNight, 30000);
+                draw();
+            }
         }
 
-        // Initial draw to set the scene
-        draw();
+        document.getElementById('interactionPrompt').addEventListener('click', startExperience);
     </script>
 </body>
 </html>
